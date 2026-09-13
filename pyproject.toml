@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "obscura-python"
-version = "0.1.8"
+version = "0.1.10"
 description = "Playwright-compatible Python SDK for the Obscura browser"
 readme = "README.md"
 requires-python = ">=3.10"

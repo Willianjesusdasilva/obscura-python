@@ -1,6 +1,7 @@
 """Replace `playwright.async_api` with `obscura.async_api` for supported flows."""
 
 import asyncio
+import base64
 from playwright import async_api as _api
 from ._process import BrowserTypeBase, ObscuraExecutableNotFound, Server, UnsupportedBrowser
 from ._viewer import FrameWindow
@@ -31,18 +32,25 @@ class BrowserType(BrowserTypeBase):
                 viewer.start()
                 context = browser.contexts[0]
                 page = context.pages[0] if context.pages else await context.new_page()
+                cdp = await context.new_cdp_session(page)
 
                 async def pump_frames():
                     interval = 1 / max(1, int(frame_rate))
                     while not viewer.closed:
                         try:
-                            viewer.push(await page.screenshot(type="png"))
-                        except Exception:
+                            result = await cdp.send("Page.captureScreenshot", {"format": "png"})
+                            viewer.push(base64.b64decode(result["data"]))
+                        except Exception as exc:
+                            print(f"Obscura frame preview stopped: {exc}", flush=True)
                             viewer.close()
                             return
                         await asyncio.sleep(interval)
 
                 server._frame_task = asyncio.create_task(pump_frames())
+                server._frame_task.add_done_callback(
+                    lambda task: None if task.cancelled() else task.exception()
+                )
+                server._frame_cdp = cdp
                 def close_viewer():
                     viewer.close()
                     task = getattr(server, "_frame_task", None)
