@@ -29,19 +29,25 @@ class BrowserType(BrowserTypeBase):
             browser = await self._chromium.connect_over_cdp(
                 server.endpoint, timeout=server.remaining_ms(), slow_mo=server.slow_mo,
             )
-            context = browser.contexts[0]
-            if not context.pages:
-                await context.new_page()
             if show_window:
                 viewer = FrameWindow(title=window_title, max_fps=frame_rate)
                 viewer.start()
-                page = context.pages[0]
-                cdp = await context.new_cdp_session(page)
 
                 async def pump_frames():
                     interval = 1 / max(1, int(frame_rate))
+                    page = None
+                    cdp = None
                     while not viewer.closed:
                         try:
+                            if page is None:
+                                for candidate_context in browser.contexts:
+                                    if candidate_context.pages:
+                                        page = candidate_context.pages[0]
+                                        cdp = await candidate_context.new_cdp_session(page)
+                                        break
+                                if page is None:
+                                    await asyncio.sleep(interval)
+                                    continue
                             result = await cdp.send("Page.captureScreenshot", {"format": "png"})
                             viewer.push(base64.b64decode(result["data"]))
                         except Exception as exc:
@@ -54,7 +60,6 @@ class BrowserType(BrowserTypeBase):
                 server._frame_task.add_done_callback(
                     lambda task: None if task.cancelled() else task.exception()
                 )
-                server._frame_cdp = cdp
                 def close_viewer():
                     viewer.close()
                     task = getattr(server, "_frame_task", None)
