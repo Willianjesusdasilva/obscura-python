@@ -1,8 +1,12 @@
 # Obscura Python SDK
 
+Documentação completa: [English](docs/README.md) · [Português do Brasil](docs/README.pt-BR.md)
+
 Playwright-like Python entry points for the Rust Obscura browser fork. The SDK
 uses Playwright's own Python objects and CDP client; it does not download
 Chromium.
+
+Complete documentation: [English](DOCUMENTATION.md) · [Português do Brasil](DOCUMENTATION.pt-BR.md)
 
 Install from this directory with `pip install -e .`. On first use, the SDK
 downloads the matching release from `h4ckf0r0day/obscura` into its own
