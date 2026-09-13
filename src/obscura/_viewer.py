@@ -78,3 +78,7 @@ class FrameWindow:
 
     def close(self) -> None:
         self._closed.set()
+        # Let Tk destroy its objects on the Tk thread before the interpreter
+        # exits; otherwise PhotoImage cleanup can run on the wrong thread.
+        if self._thread and self._thread is not threading.current_thread():
+            self._thread.join(timeout=2.0)
