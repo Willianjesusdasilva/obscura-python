@@ -27,6 +27,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - name: Set version from release tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: uv version "${GITHUB_REF_NAME#v}"
       - run: uv build
       - name: Publish distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
