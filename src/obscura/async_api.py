@@ -31,18 +31,25 @@ class BrowserType(BrowserTypeBase):
                 viewer.start()
                 context = browser.contexts[0]
                 page = context.pages[0] if context.pages else await context.new_page()
-                cdp = await context.new_cdp_session(page)
-                await cdp.send("Page.startScreencast", {"format": "png", "maxWidth": 1600, "maxHeight": 1200})
 
-                async def on_frame(params):
-                    try:
-                        viewer.push(__import__("base64").b64decode(params["data"]))
-                        await cdp.send("Page.screencastFrameAck", {"sessionId": params["sessionId"]})
-                    except Exception:
-                        viewer.close()
+                async def pump_frames():
+                    interval = 1 / max(1, int(frame_rate))
+                    while not viewer.closed:
+                        try:
+                            viewer.push(await page.screenshot(type="png"))
+                        except Exception:
+                            viewer.close()
+                            return
+                        await asyncio.sleep(interval)
 
-                cdp.on("Page.screencastFrame", lambda params: asyncio.create_task(on_frame(params)))
-                browser.on("disconnected", viewer.close)
+                server._frame_task = asyncio.create_task(pump_frames())
+                def close_viewer():
+                    viewer.close()
+                    task = getattr(server, "_frame_task", None)
+                    if task:
+                        task.cancel()
+
+                browser.on("disconnected", close_viewer)
                 server._frame_viewer = viewer
                 server._frame_cdp = cdp
             browser.on("disconnected", server.stop)
