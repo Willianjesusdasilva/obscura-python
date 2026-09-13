@@ -3,6 +3,7 @@
 import asyncio
 from playwright import async_api as _api
 from ._process import BrowserTypeBase, ObscuraExecutableNotFound, Server, UnsupportedBrowser
+from ._viewer import FrameWindow
 
 # Real Playwright types, exceptions and assertions, without private API patches.
 __all__ = [name for name in dir(_api) if not name.startswith("_")]
@@ -10,7 +11,8 @@ globals().update({name: getattr(_api, name) for name in __all__})
 
 
 class BrowserType(BrowserTypeBase):
-    async def launch(self, *, args=None, obscura_args=None, **kwargs) -> _api.Browser:
+    async def launch(self, *, args=None, obscura_args=None, show_window=False,
+                     window_title="Obscura (headless preview)", frame_rate=30, **kwargs) -> _api.Browser:
         if args:
             raise _api.Error("Obscura does not support Chromium launch args; use obscura_args")
         if obscura_args is not None and not all(isinstance(arg, str) for arg in obscura_args):
@@ -24,6 +26,25 @@ class BrowserType(BrowserTypeBase):
             browser = await self._chromium.connect_over_cdp(
                 server.endpoint, timeout=server.remaining_ms(), slow_mo=server.slow_mo,
             )
+            if show_window:
+                viewer = FrameWindow(title=window_title, max_fps=frame_rate)
+                viewer.start()
+                context = browser.contexts[0]
+                page = context.pages[0] if context.pages else await context.new_page()
+                cdp = await context.new_cdp_session(page)
+                await cdp.send("Page.startScreencast", {"format": "png", "maxWidth": 1600, "maxHeight": 1200})
+
+                async def on_frame(params):
+                    try:
+                        viewer.push(__import__("base64").b64decode(params["data"]))
+                        await cdp.send("Page.screencastFrameAck", {"sessionId": params["sessionId"]})
+                    except Exception:
+                        viewer.close()
+
+                cdp.on("Page.screencastFrame", lambda params: asyncio.create_task(on_frame(params)))
+                browser.on("disconnected", viewer.close)
+                server._frame_viewer = viewer
+                server._frame_cdp = cdp
             browser.on("disconnected", server.stop)
             self._servers.append(server)
             return browser

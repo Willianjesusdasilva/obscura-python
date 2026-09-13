@@ -51,6 +51,27 @@ async with async_playwright() as p:
     await browser.close()
 ```
 
+## Janela de visualização (headless)
+
+O engine continua sem janela e recebe comandos por CDP, mas o SDK pode mostrar
+os frames recebidos em uma janela Tkinter. Isso é útil para depurar um fluxo de
+RPA sem trocar a API Playwright:
+
+```python
+from obscura.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(show_window=True, window_title="Meu robô", frame_rate=30)
+    page = browser.contexts[0].pages[0]
+    page.goto("https://example.com")
+    input("Pressione Enter para fechar... ")
+    browser.close()
+```
+
+`show_window=True` apenas exibe o screencast `Page.startScreencast`; não torna o
+processo do navegador headed e não altera a automação. O recurso depende de
+Tkinter estar disponível na instalação do Python.
+
 Each launch chooses a free loopback port and starts an independent process.
 `connect_over_cdp()` connects to an external process and never terminates it.
 Obscura is headless only; unsupported launch options produce explicit errors.
