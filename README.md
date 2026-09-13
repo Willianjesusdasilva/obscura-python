@@ -25,6 +25,11 @@ uv tool install obscura-python
 obscura-python --version
 ```
 
+Releases are published by GitHub Actions. Create a tag such as `v0.1.0` after
+configuring the repository as a Trusted Publisher for the `obscura-python`
+project on PyPI; the workflow builds and uploads the wheel and source archive
+without storing a PyPI token in GitHub.
+
 For a local checkout use `uv tool install ./python`, or add it to a project
 with `uv add ./python`. The first execution may require internet access to
 download the Rust browser binary; set `OBSCURA_EXECUTABLE` for offline use.
