@@ -51,7 +51,6 @@ class BrowserType(BrowserTypeBase):
 
                 browser.on("disconnected", close_viewer)
                 server._frame_viewer = viewer
-                server._frame_cdp = cdp
             browser.on("disconnected", server.stop)
             self._servers.append(server)
             return browser
