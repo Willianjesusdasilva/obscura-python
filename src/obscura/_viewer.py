@@ -5,7 +5,6 @@ from __future__ import annotations
 import base64
 import queue
 import threading
-from typing import Any
 
 
 class FrameWindow:
@@ -79,13 +78,3 @@ class FrameWindow:
 
     def close(self) -> None:
         self._closed.set()
-
-
-def first_page(browser: Any, *, async_mode: bool = False):
-    """Return the first CDP page, creating one when the default context is empty."""
-    contexts = browser.contexts
-    if contexts and contexts[0].pages:
-        return contexts[0].pages[0]
-    if not contexts:
-        raise RuntimeError("Obscura returned no browser context for frame preview")
-    return contexts[0].new_page()
