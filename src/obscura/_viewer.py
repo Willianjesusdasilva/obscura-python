@@ -18,7 +18,8 @@ def _run_window(frames, title: str, max_fps: int) -> None:
         try:
             frame = frames.get_nowait()
         except queue.Empty:
-            frame = None
+            root.after(max(1, int(1000 / max_fps)), refresh)
+            return
         if frame is None:
             root.destroy()
             return
