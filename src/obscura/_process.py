@@ -88,7 +88,7 @@ def ensure_executable() -> str:
     try:
         if destination.is_file():
             return str(destination)
-        repository = os.environ.get("OBSCURA_REPOSITORY", "Willianjesusdasilva/obscura")
+        repository = os.environ.get("OBSCURA_REPOSITORY", "h4ckf0r0day/obscura")
         api = f"https://api.github.com/repos/{repository}/releases/latest"
         with urllib.request.urlopen(api, timeout=20) as response:
             release = json.load(response)

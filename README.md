@@ -5,8 +5,10 @@ uses Playwright's own Python objects and CDP client; it does not download
 Chromium.
 
 Install from this directory with `pip install -e .`. On first use, the SDK
-downloads the matching release from `Willianjesusdasilva/obscura` into its own
-`obscura-python` data directory. Set `OBSCURA_PYTHON_HOME` to choose the root.
+downloads the matching release from `h4ckf0r0day/obscura` into its own
+`obscura-python` data directory. Set `OBSCURA_REPOSITORY` to use another
+repository, such as your own fork, when it has compatible release assets.
+Set `OBSCURA_PYTHON_HOME` to choose the local root.
 `OBSCURA_EXECUTABLE`, `executable_path`, or a binary on `PATH` can override
 that download.
 
