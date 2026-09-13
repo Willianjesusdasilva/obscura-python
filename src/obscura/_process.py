@@ -224,6 +224,9 @@ class Server:
             return False
 
     def stop(self, *_):
+        viewer = getattr(self, "_frame_viewer", None)
+        if viewer is not None:
+            viewer.close()
         if self.process is not None and self.process.poll() is None:
             self.process.terminate()
             try:
