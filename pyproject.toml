@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "obscura-python"
+version = "0.1.0"
+description = "Playwright-compatible Python SDK for the Obscura browser"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{name = "Willian Jesus da Silva"}]
+dependencies = ["playwright>=1.40,<2"]
+
+[project.urls]
+Repository = "https://github.com/Willianjesusdasilva/obscura-python"
+
+[project.scripts]
+obscura-python = "obscura.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
